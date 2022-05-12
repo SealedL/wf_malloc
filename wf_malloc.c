@@ -77,7 +77,7 @@ void *wf_malloc(size_t size) {
         cur_ptr->meta.next = new_chunk;
         // this new chunk will be our wanted
         target_node = new_chunk;
-        largest_chunk = block_count(getpagesize() * alloc_num) - 1;
+        largest_chunk = new_chunk->meta.block_num;
     }
 
     if (largest_chunk == required) {
