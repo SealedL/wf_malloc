@@ -27,6 +27,10 @@
 #include <string.h>
 // to use mmap()
 #include <sys/mman.h>
+/* to get page size. But this example processes the memory into small block sized by union chunk, and requires
+ * contiguous address, so it will not map at exactly address suitably aligned by page size.
+ */
+#include <unistd.h>
 
 /*
  * This is an example to emulate the worst fit algorithm of memory allocation.
@@ -34,7 +38,6 @@
  * Otherwise, there would be no enough space for newly requests always.
  * In this case, I set it to be 1024 blocks, which equals to 16384 bytes.
  */
-#define LEAST_NUM 1024
 
 union chunk {
     struct {

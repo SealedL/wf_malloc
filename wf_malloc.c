@@ -25,13 +25,13 @@ void *wf_malloc(size_t size) {
                              0);
 
         // attach a tail to the list.
-        node *next = (node *) mmap(((char *) list + sizeof(union chunk)), sizeof(node) * LEAST_NUM,
+        node *next = (node *) mmap(((char *) list + sizeof(union chunk)), getpagesize(),
                                    PROT_READ | PROT_WRITE,
                                    MAP_ANONYMOUS | MAP_PRIVATE,
                                    0,
                                    0);
         next->meta.next = NULL;
-        next->meta.block_num = LEAST_NUM - 1; // the chunk header occupied a block
+        next->meta.block_num = block_count(getpagesize()) - 1; // the chunk header occupied a block
         list->meta.next = next;
         list->meta.block_num = 0;
         cur_ptr = list;
@@ -55,29 +55,29 @@ void *wf_malloc(size_t size) {
     // Mention that the cur_ptr is always point to the tail of the list.
     if (largest_chunk < required) {
         // we need the least size for each new memory allocation.
-        size_t alloc_num = (required + LEAST_NUM - 1) / LEAST_NUM;
+        size_t alloc_num = (required * sizeof(union chunk) + getpagesize() - 1) / getpagesize();
 
         // add a chunk that has enough space
         node *new_chunk = (node *) mmap((char *) cur_ptr + (cur_ptr->meta.block_num + 1) * sizeof(union chunk),
-                                        sizeof(node) * LEAST_NUM * alloc_num, PROT_READ | PROT_WRITE,
+                                        getpagesize() * alloc_num, PROT_READ | PROT_WRITE,
                                         MAP_ANONYMOUS | MAP_PRIVATE,
                                         0,
                                         0);
         // the new chunk will be the node before tail.
         // In other words, always attach an unused node to the tail of the list
         new_chunk->meta.next = NULL;
-        new_chunk->meta.block_num = LEAST_NUM * alloc_num - 1;
+        new_chunk->meta.block_num = block_count(getpagesize() * alloc_num) - 1;
         node *tail_chunk = (node *) mmap((char *) new_chunk + (new_chunk->meta.block_num + 1) * sizeof(union chunk),
-                                         sizeof(union chunk) * LEAST_NUM, PROT_READ | PROT_WRITE,
+                                         getpagesize(), PROT_READ | PROT_WRITE,
                                          MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
         tail_chunk->meta.next = NULL;
-        tail_chunk->meta.block_num = LEAST_NUM - 1;
+        tail_chunk->meta.block_num = block_count(getpagesize()) - 1;
         // link the new chunk
         new_chunk->meta.next = tail_chunk;
         cur_ptr->meta.next = new_chunk;
         // this new chunk will be our wanted
         target_node = new_chunk;
-        largest_chunk = LEAST_NUM * alloc_num - 1;
+        largest_chunk = block_count(getpagesize() * alloc_num) - 1;
     }
 
     if (largest_chunk == required) {

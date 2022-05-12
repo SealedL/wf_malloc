@@ -6,19 +6,11 @@
 
 #include "wf_malloc.h"
 
-void check_errno() {
-    if (errno != 0) {
-        printf("error occurred!\n");
-        fprintf(stderr, "%s\n", strerror(errno));
-        return;
-    }
-}
-
 void test_simple_allocate_and_free() {
     printf("----test_simple_allocate_and_free started:\n");
     printf("allocate array has 40 int elements.\n");
 
-    int *array = (int *) wf_malloc(10 * 4 * sizeof(int));
+    int *array = (int *) wf_calloc(10 * 4, sizeof(int));
 
     printf("array: \t\t%p\n", array);
     printf("free the array.\n");
@@ -76,7 +68,7 @@ void test_the_worst_fit_work() {
 
     wf_free(array2);
 
-    printf("allocate array3 has 40 int elements.\n");
+    printf("allocate array4 has 40 int elements.\n");
 
     int *array4 = (int *) wf_malloc(10 * 4 * sizeof(int));
 
